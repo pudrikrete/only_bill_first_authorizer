@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <title>ONLY BILL FIRST AUTHORIZOR</title>    
+    <script src="./js/waxjs.js"></script>
+	<script src="./js/only_bill_first_authorizer.js"></script>
+	<script src='./js/eosjs-api.js'></script>
+    <script src='./js/eosjs-jsonrpc.js'></script>
+    <script src='./js/eosjs-jssig.js'></script>
+    <script src='./js/eosjs-numeric.js'></script>
+  </head>
+  <body>
+    <div>		
+		<div>
+			<table border="0">
+				<TR>
+					<TD><div style="text-align: center;"><b>PAGE STATUS</b></div></TD>
+					<TD><button id="btn-sign-in" onclick="SignIn()" style="width: 100px; height: 24px;">Sign in</button> </TD>
+					<TD><button id="btn-xfer" onclick="StartXfer()" style="width: 100px; height: 24px;">Transfer</button>  </TD>
+					</TR>				
+				<TR>
+					<TD><div id="page-status-pnl" style="background-color: red; width: 100px; height: 24px;"></div> </TD>
+					<TD><div id="sign-in-status-pnl" style="background-color: red; width: 100px; height: 24px;"></div> </TD>
+					<TD><div id="xfer-status-pnl" style="background-color: red; width: 100px; height: 24px;"></div> </TD>						
+				</TR>			
+			</table>
+		</div>
+	 </div>
+
+    
+    <script type="text/javascript">            
+		var this_sys = new sys();
+			document.addEventListener("DOMContentLoaded", function(event) {
+			loadConfig()        
+		});
+		function SignIn(action){  
+			if(this_sys.isRunning == true){					
+				this_sys.sign_Out()
+				document.getElementById("btn-sign-in").innerHTML = "Sign in"
+				document.getElementById("sign-in-status-pnl").style.backgroundColor = 'red'	
+			}else{  				         
+				this_sys.sign_In()
+				document.getElementById("btn-sign-in").innerHTML = "Sign out"
+				document.getElementById("sign-in-status-pnl").style.backgroundColor = 'yellow' 
+			}
+		}    
+		function StartXfer(action){
+			if(this_sys.isRunning == true){
+				this_sys.xfer_wax()
+			}
+		}
+		function loadConfig(){
+			document.getElementById("page-status-pnl").style.backgroundColor = 'green'
+		}      		
+    </script>
+  </body>
+</html>
