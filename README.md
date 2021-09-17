@@ -101,6 +101,7 @@ sudo nano 12-char-wallet-address.pwd
 ```
 &emsp;&emsp;⬜ Unlock using password to make sure we have access to the new account
 ```
+cleos wallet lock -n 12-CHAR-WALLET-ADDRESS
 cleos wallet unlock -n 12-char-wallet-address
 ```
 &emsp;&emsp;⬜ Import the private key with owner permissions
@@ -137,7 +138,7 @@ cleos -u https://wax.greymass.com push transaction '{
 &emsp;&emsp;⬜ Verify that we have staked 5 WAX – the wallet is set up in cleos correctly <BR>
 &emsp;&emsp;⬜ Lock wallet if we are done with it
 ```	
-Cleos wallet lock -n 12-CHAR-WALLET-ADDRESS
+cleos wallet lock -n 12-CHAR-WALLET-ADDRESS
 ```
 
 &emsp;⬜ Copy server files with WinSCP <BR>
