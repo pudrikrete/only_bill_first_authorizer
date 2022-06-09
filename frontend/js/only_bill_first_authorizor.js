@@ -141,6 +141,11 @@ async serverSign(transaction, txHeaders) {
 		headers: {
 			Accept: 'application/json',
 					'Content-Type': 'application/json',
+					'mode': 'cors', 
+					'cache': 'no-cache',
+					'credentials': 'same-origin',
+					'redirect': 'follow',
+					'referrerPolicy': 'no-referrer'
 		},
 		body: JSON.stringify({ tx: transaction, txHeaders }),
 	})
