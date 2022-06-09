@@ -32,6 +32,8 @@ If you already have a 12-character WAX account with keys / permissions, you can 
 &emsp;⬜ Download source files (from this repository)<BR>
 &emsp;⬜ Select Code -> download ZIP<BR>
 &emsp;⬜ Unzip the files (for this guide we will assume you unzipped to C:\Interface\)<BR>
+&emsp;⬜ Download a copy of waxjs from its source on github (this file is not included in this repository so that you know it hasn't been altered). Save this to C:\Interface\frontend\js\waxjs.js<BR>
+https://github.com/worldwide-asset-exchange/waxjs/tree/develop/dist-web <BR>
 ###### Set up server files to match environment<BR>
 &emsp;&emsp;⬜ c:\interface\server\env\production.env<BR>
 &emsp;&emsp;&emsp;&emsp;⬜ Change the EOSIO_SIGNING_KEY= to be the PRIVATE KEY of the account you are using<BR>		
@@ -71,7 +73,7 @@ const rawResponse = await fetch('http://192.168.1.60:3031/api/eos/sign', {
 &emsp;⬜ Install Ubuntu Server as a VM (2 vCPU, 4 GB RAM, 40 GB HDD should suffice) <br>
 &emsp;&emsp;⬜ Install OpenSSH as part of the installation <br>
 &emsp;⬜ Set up the new system with software, updates, and then configure <br>
-&emsp;&emsp;&emsp;The system needs NodeJS, NPM, Cleos (optional), Apache (optional) <br>
+&emsp;&emsp;&emsp;The system needs NodeJS, NPM, eosio, Apache (optional) <br>
 &emsp;&emsp;&emsp;⬜ Run the following commands to install software: <br>
 ```
 cd ~
@@ -80,9 +82,25 @@ sudo apt install ./eosio_2.1.0-1-ubuntu-20.04_amd64.deb
 sudo apt-get update
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 sudo apt-get install -y nodejs
-sudo apt-get install apache2
 ```
-&emsp;⬜ Set up wallet (optional - if you already have a private wallet you can skip this) <br>
+&emsp;⬜ Copy server files with WinSCP <BR>
+&emsp;&emsp;&emsp;⬜ Make sure all server files in Section II have been modified. <BR>
+&emsp;&emsp;&emsp;⬜ Copy all files from C:\interface\server\ to /var/waxsign <BR>
+```
+sudo mkdir -p /var/waxsign
+sudo chmod -R 777 /var/waxsign
+cd /var/waxsign
+npm install
+```
+&emsp;⬜ Additional server side set up <BR>
+Optional - set up Apache web server. If you already have a web server set up, skip to the step where you copy files from C:\Interface\frontend
+```
+sudo apt-get install -y apache2
+```
+&emsp;⬜Copy files to default web server directory (or your own web server directory if you already have one set up).<BR>
+> If you are using ubuntu, I find it easy to use WinSCP to connect to the server to copy files. On your local system, navigate to c:\Interface\frontend and copy these files to /var/www/html (this is the default website for Apache). <BR>
+## Section IV - SET UP WALLET <BR>
+Optional - if you already have a private wallet you can skip this. Note that cleos is installed as a part of eosio (previous section). <br>
 ```
 cd ~
 cleos wallet create -n 12-char-wallet-address --file 12-char-wallet-address.pwd
@@ -132,23 +150,12 @@ cleos -u https://wax.greymass.com push transaction '{
 ```	
 cleos wallet lock -n 12-CHAR-WALLET-ADDRESS
 ```
-
-&emsp;⬜ Copy server files with WinSCP <BR>
-&emsp;&emsp;&emsp;⬜ Make sure all server files in Section II have been modified. <BR>
-&emsp;&emsp;&emsp;⬜ Copy all files from C:\interface\server\ to /var/waxsign <BR>
-&emsp;⬜ Additional server side set up <BR>
-```
-sudo mkdir -p /var/waxsign
-sudo chmod -R 777 /var/waxsign
-cd /var/waxsign
-npm install
-```
-## SECTION IV – Running software
-To run the nodeos server manually, get into the /var/waxsign directory and simply run: <BR>
+## SECTION V – Running software
+To run the nodeos application manually, get into the /var/waxsign directory and simply run: <BR>
 ```
 npm start
 ```
-If you want to automatically run the nodeos server at startup, the easiest thing to do is add an entry to your crontab file to run a script that starts the nodeos server after reboot. The steps to do this are fairly easy: <BR>
+If you want to automatically run the nodeos application at startup, the easiest thing to do is add an entry to your crontab file to run a script that starts the nodeos application after reboot. The steps to do this are fairly easy: <BR>
 &emsp;⬜ Edit crontab file ( if you're asked what editor to use, pick #1 nano ): <BR>
 ```
 sudo crontab -e	
@@ -166,7 +173,7 @@ sudo nano /var/waxsign/startup.sh
 cd /var/waxsign
 npm start
 ```
-## SECTION V – HTTP or HTTPS
+## SECTION VI – HTTP or HTTPS
 You have the option of running the nodeos application either in http (default) or https. The configuration for https is a little more advanced and requires a certificate. The steps to aquire a certificate are beyond the scope of these instructions, but if you know how to get them, follow the below steps to configure the nodeos application and front end to use https instead.<BR>
 &emsp;⬜ Make a directory for the certificates <BR>
 ```
@@ -200,19 +207,19 @@ httpsServer.listen(port, () => {
 //});
 ```
 &emsp;⬜ Modify c:\interface\frontend\only_bill_first_authorizer.js <BR>
-&emsp;&emsp;&emsp;( you may have moved this to the server already and it is located in /var/www/html ) <BR>
+&emsp;&emsp;&emsp;( you may have moved this to the server already and it is located in /var/www/html or a different directory if you have a different web server already configured) <BR>
 > Change line 139 from http to https <BR>
 ```
 const rawResponse = await fetch('https://192.168.1.60:3031/api/eos/sign', {
 ```
-## SECTION VI – Testing
-&emsp;⬜ Go to the front end by visiting the IP address of the Ubuntu server that was set up (in a browser) <BR>
+## SECTION VII – Testing
+&emsp;⬜ Go to the front end by visiting the IP address of the Apache server that was set up (in a browser) <BR>
 &emsp;⬜ Open your browser’s developer console to check for errors <BR>
 &emsp;⬜ Click on the Login button <BR>
 &emsp;⬜ Sign into your Wax Cloud Wallet <BR>
 &emsp;⬜ Click on the Transfer button <BR>
 &emsp;⬜ Approve the transaction <BR>
-## SECTION VI – Increase security
+## SECTION VIII – Increase security
 Now that you've tested everything and have it working properly (right?!), it's a good idea to move the file containing your private key to a more secure location (outside of the nodeos application directory).<BR>
 &emsp;⬜Create a new directory outside of /var/waxsign ( this guide will use /var/waxkey ) <BR>
 ```
