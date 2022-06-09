@@ -135,16 +135,16 @@ cleos wallet lock -n 12-CHAR-WALLET-ADDRESS
 
 &emsp;⬜ Copy server files with WinSCP <BR>
 &emsp;&emsp;&emsp;⬜ Make sure all server files in Section II have been modified. <BR>
-&emsp;&emsp;&emsp;⬜ Copy all files from C:\interface\server\ to /var/www/server <BR>
+&emsp;&emsp;&emsp;⬜ Copy all files from C:\interface\server\ to /var/waxsign <BR>
 &emsp;⬜ Additional server side set up <BR>
 ```
-sudo mkdir -p /var/www/server
-sudo chmod -R 777 /var/www
-cd /var/www/server
+sudo mkdir -p /var/waxsign
+sudo chmod -R 777 /var/waxsign
+cd /var/waxsign
 npm install
 ```
 ## SECTION IV – Running software
-To run the nodeos server manually, get into the /var/www/server directory and simply run: <BR>
+To run the nodeos server manually, get into the /var/waxsign directory and simply run: <BR>
 ```
 npm start
 ```
@@ -155,27 +155,27 @@ sudo crontab -e
 ```
 &emsp;⬜ Add the following line to the bottom of the file and then save/exit: <BR>
 ```
-@reboot ( sleep 90 ; sh /var/www/server/startup.sh )	
+@reboot ( sleep 90 ; sh /var/waxsign/startup.sh )	
 ```
-&emsp;⬜ Create the startup script /var/www/server/startup.sh <BR>
+&emsp;⬜ Create the startup script /var/waxsign/startup.sh <BR>
 ```
-sudo nano /var/www/server/startup.sh
+sudo nano /var/waxsign/startup.sh
 ```
 &emsp;⬜ Add two lines to the file:
 ```
-cd /var/www/server
+cd /var/waxsign
 npm start
 ```
 ## SECTION V – HTTP or HTTPS
-You have the option of running the nodeos server either in http (default) or https. The configuration for https is a little more advanced and requires a certificate. The steps to aquire a certificate are beyond the scope of these instructions, but if you know how to get them, follow the below steps to configure the nodeos server and front end to use https instead.
+You have the option of running the nodeos application either in http (default) or https. The configuration for https is a little more advanced and requires a certificate. The steps to aquire a certificate are beyond the scope of these instructions, but if you know how to get them, follow the below steps to configure the nodeos application and front end to use https instead.<BR>
 &emsp;⬜ Make a directory for the certificates <BR>
 ```
-sudo mkdir -p /var/www/server/src/certs
+sudo mkdir -p /var/waxsign/src/certs
 ```
-&emsp;⬜ Copy your certificate files (certificate and key) into this directory. You can use the default file names for the certificates after you've gotten them, you just need to make sure to edit the nodeos server source files appropriately afterwards. <BR>
-&emsp;⬜ Modify nodeos server file /var/www/server/src/start.ts <BR>
+&emsp;⬜ Copy your certificate files (certificate and key) into this directory. You can use the default file names for the certificates after you've gotten them, you just need to make sure to edit the nodeos application source files appropriately afterwards. <BR>
+&emsp;⬜ Modify nodeos application file /var/waxsign/src/start.ts <BR>
 > Uncomment lines 6 - 15 (remove the leading // at the beginning of the lines) <BR>
-> Modify file names for the private key and certificate file you copied to /var/www/server/src/certs (lines 8 & 9) <BR>	
+> Modify file names for the private key and certificate file you copied to /var/waxsign/src/certs (lines 8 & 9) <BR>	
 > Comment lines 17-19 (add // to the start of the lines) <BR>
 The file should look similar to below: 
 ```
@@ -212,3 +212,30 @@ const rawResponse = await fetch('https://192.168.1.60:3031/api/eos/sign', {
 &emsp;⬜ Sign into your Wax Cloud Wallet <BR>
 &emsp;⬜ Click on the Transfer button <BR>
 &emsp;⬜ Approve the transaction <BR>
+## SECTION VI – Increase security
+Now that you've tested everything and have it working properly (right?!), it's a good idea to move the file containing your private key to a more secure location (outside of the nodeos application directory).<BR>
+&emsp;⬜Create a new directory outside of /var/waxsign ( this guide will use /var/waxkey ) <BR>
+```
+sudo mkdir -p /var/waxkey
+sudo chmod -R 777 /var/waxkey
+```
+&emsp;⬜Move the file containing your key to this directory <BR>
+```
+mv /var/waxsign/env/production.env /var/waxkey/production.env
+```
+&emsp;⬜Modify nodeos application files to read the file from its new location <BR>
+> Edit /var/waxsign/env/index.js and modify line 6 so the path points to the new location, it will look similar to below:<BR>
+```
+let dotenv = require('dotenv');
+
+// Set default to "production"
+const nodeEnv = process.env.ENV_FILE || 'production';
+const result2 = dotenv.config({
+    path: `/var/waxkey/${nodeEnv}.env`,
+});
+
+if (result2.error) {
+    throw result2.error;
+}
+```
+Another step you can take is to set up permissions on your WAX account so that the account used for your nodeos application only has permissions to do very limited things (such as signing this transaction). The steps to do this are outside of the scope of this tutorial.<BR>
