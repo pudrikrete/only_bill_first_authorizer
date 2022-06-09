@@ -11,7 +11,6 @@ This was made possible following the post by CMICHEL at https://cmichel.io/eosio
 &emsp;⬜ Used Windows software<BR>
 &emsp;&emsp;⬜ WinSCP - https://winscp.net/eng/download.php	<BR>
 &emsp;&emsp;⬜ Putty - https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html	<BR>
-&emsp;&emsp;⬜ VMWare ESXi - https://customerconnect.vmware.com/	<BR>
 &emsp;&emsp;⬜ Notepad++ - https://notepad-plus-plus.org/downloads/	<BR>
 &emsp;&emsp;⬜ EOSIO Key	creator – https://eoskey.io/
 
@@ -72,7 +71,7 @@ const rawResponse = await fetch('http://192.168.1.60:3031/api/eos/sign', {
 &emsp;⬜ Install Ubuntu Server as a VM (2 vCPU, 4 GB RAM, 40 GB HDD should suffice) <br>
 &emsp;&emsp;⬜ Install OpenSSH as part of the installation <br>
 &emsp;⬜ Set up the new system with software, updates, and then configure <br>
-&emsp;&emsp;&emsp;The system needs NodeJS, NPM, Apache, Cleos <br>
+&emsp;&emsp;&emsp;The system needs NodeJS, NPM, Cleos (optional), Apache (optional) <br>
 &emsp;&emsp;&emsp;⬜ Run the following commands to install software: <br>
 ```
 cd ~
@@ -80,17 +79,10 @@ wget https://github.com/eosio/eos/releases/download/v2.1.0/eosio_2.1.0-1-ubuntu-
 sudo apt install ./eosio_2.1.0-1-ubuntu-20.04_amd64.deb
 sudo apt-get update
 curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-sudo bash nodesource_setup.sh
 sudo apt-get install -y nodejs
 sudo apt-get install apache2
 ```
-&emsp;⬜ Set up Apache for our environment <br>
-```
-cd /var/www
-sudo mkdir server
-sudo chmod -R 777 server
-```
-&emsp;⬜ Set up wallet <br>
+&emsp;⬜ Set up wallet (optional - if you already have a private wallet you can skip this) <br>
 ```
 cd ~
 cleos wallet create -n 12-char-wallet-address --file 12-char-wallet-address.pwd
@@ -146,11 +138,74 @@ cleos wallet lock -n 12-CHAR-WALLET-ADDRESS
 &emsp;&emsp;&emsp;⬜ Copy all files from C:\interface\server\ to /var/www/server <BR>
 &emsp;⬜ Additional server side set up <BR>
 ```
+sudo mkdir -p /var/www/server
+sudo chmod -R 777 /var/www
 cd /var/www/server
 npm install
+```
+## SECTION IV – Running software
+To run the nodeos server manually, get into the /var/www/server directory and simply run: <BR>
+```
 npm start
 ```
-## SECTION IV – Testing
+If you want to automatically run the nodeos server at startup, the easiest thing to do is add an entry to your crontab file to run a script that starts the nodeos server after reboot. The steps to do this are fairly easy: <BR>
+&emsp;⬜ Edit crontab file ( if you're asked what editor to use, pick #1 nano ): <BR>
+```
+sudo crontab -e	
+```
+&emsp;⬜ Add the following line to the bottom of the file and then save/exit: <BR>
+```
+@reboot ( sleep 90 ; sh /var/www/server/startup.sh )	
+```
+&emsp;⬜ Create the startup script /var/www/server/startup.sh <BR>
+```
+sudo nano /var/www/server/startup.sh
+```
+&emsp;⬜ Add two lines to the file:
+```
+cd /var/www/server
+npm start
+```
+## SECTION V – HTTP or HTTPS
+You have the option of running the nodeos server either in http (default) or https. The configuration for https is a little more advanced and requires a certificate. The steps to aquire a certificate are beyond the scope of these instructions, but if you know how to get them, follow the below steps to configure the nodeos server and front end to use https instead.
+&emsp;⬜ Make a directory for the certificates <BR>
+```
+sudo mkdir -p /var/www/server/src/certs
+```
+&emsp;⬜ Copy your certificate files (certificate and key) into this directory. You can use the default file names for the certificates after you've gotten them, you just need to make sure to edit the nodeos server source files appropriately afterwards. <BR>
+&emsp;⬜ Modify nodeos server file /var/www/server/src/start.ts <BR>
+> Uncomment lines 6 - 15 (remove the leading // at the beginning of the lines) <BR>
+> Modify file names for the private key and certificate file you copied to /var/www/server/src/certs (lines 8 & 9) <BR>	
+> Comment lines 17-19 (add // to the start of the lines) <BR>
+The file should look similar to below: 
+```
+import app from '@server';
+
+// Start the server
+const port = Number(process.env.PORT || 3031);
+
+var fs = require('fs');
+var https = require('https');
+var privateKey  = fs.readFileSync('src/certs/private.key', 'utf8');
+var certificate = fs.readFileSync('src/certs/certificate.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
+
+var httpsServer = https.createServer(credentials, app);
+httpsServer.listen(port, () => {
+	console.log('HTTPS express server started on port: ' + port);
+});
+
+//app.listen(port, () => {
+//   console.log('Express server started on port: ' + port);
+//});
+```
+&emsp;⬜ Modify c:\interface\frontend\only_bill_first_authorizer.js <BR>
+&emsp;&emsp;&emsp;( you may have moved this to the server already and it is located in /var/www/html ) <BR>
+> Change line 139 from http to https <BR>
+```
+const rawResponse = await fetch('https://192.168.1.60:3031/api/eos/sign', {
+```
+## SECTION VI – Testing
 &emsp;⬜ Go to the front end by visiting the IP address of the Ubuntu server that was set up (in a browser) <BR>
 &emsp;⬜ Open your browser’s developer console to check for errors <BR>
 &emsp;⬜ Click on the Login button <BR>
